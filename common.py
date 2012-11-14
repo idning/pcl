@@ -37,12 +37,12 @@ class NotImplementException(Exception):
 
 
 class Ddict(dict):
-    def __init__(self, default=None):
+    def __init__(self, default=dict):
         self.default = default
 
     def __getitem__(self, key):
         if not self.has_key(key):
-            self[key] = {}
+            self[key] = self.default()
         return dict.__getitem__(self, key)   
 
 
