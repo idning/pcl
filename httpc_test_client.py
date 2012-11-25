@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #coding: utf-8
 #file   : httpc_test_client.py
 #author : ning
@@ -9,13 +9,14 @@ import urllib, urllib2
 import os, sys
 import re, time
 import logging
+import argparse
+
 from common import init_logging, shorten
 from httpc import *
 
 init_logging(logger, logging.INFO)
 
-URL = 'http://localhost:8000/'
-tmp_file = 'test_pyhttpc.tmp'
+tmp_file = 'test_pyhttpc.data'
 
 def _test_http_client(http_client_class, url, add_header, local_file):
     c = http_client_class()
@@ -62,14 +63,14 @@ query_string_case = [
     '',
     '?a=b',
     '?a=b&c=d',
-    '?a=b&c=d#xxxxxxx',
+    #'?a=b&c=d#xxxxxxx',
 ]
 
 def test2():
     assert select_best_httpc() == PyCurlHTTPC
 
 
-def test1():
+def test1(URL):
     i = 0
     for add_header in header_cases:
         for local_file in body_cases + body_cases2:
@@ -91,11 +92,22 @@ def test1():
                     assert( r1[k]['body'] == r3[k]['body'] )
                 i += 1
 
+def getport():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--port', type=int, default=8000,
+                        help="port ") 
+    args = parser.parse_args()
+    return args.port
+
 def main():
-    test1()
+    port = getport()
+    URL = 'http://localhost:%d/' % port
+    test1(URL)
     test2()
     #test3()
 
-main()
+if __name__=='__main__':
+    main()
+
 #_test_http_client(HttplibHTTPC)
 #HttplibHTTPC().post_multipart(url, local_file, 'file1')

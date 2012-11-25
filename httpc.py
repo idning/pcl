@@ -19,7 +19,7 @@ import mimetypes
 from cStringIO import StringIO
 #from abc import abstractmethod
 from urlparse import urlparse
-from common import shorten
+from common import shorten, system
 
 logger = logging.getLogger('pyhttpclient')
 
@@ -114,8 +114,10 @@ class HTTPC:
 
 class CurlHTTPC(HTTPC):
     'use linux curl command , just for debug '
-    def __init__(self, tmp_dir='/tmp/pyhttpclient/'):
+    def __init__(self, tmp_dir='/tmp/pyhttpclient/', keep_minute=15):
         self.tmp_dir = tmp_dir
+        self.keep_minute = keep_minute
+
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir) 
         
@@ -171,6 +173,7 @@ class CurlHTTPC(HTTPC):
         name = name.replace(' ', '_')
         name = name.replace(':', '_')
         name = name.replace('.', '_')
+        system ('find "%s" -amin +%d 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null' % (self.tmp_dir, self.keep_minute) )
         return self.tmp_dir + key + name
 
     def _headers2txt(self, headers):
@@ -181,6 +184,7 @@ class CurlHTTPC(HTTPC):
             rst = self._curl_ll(cmd, body_file)
             return rst
         except Exception, e:
+            logger.exception(e)
             raise HTTPException('detail: ' + str(e))
 
 
