@@ -15,6 +15,8 @@ import hashlib
 import commands
 import mimetypes
 import json
+import getopt
+
 
 from cStringIO import StringIO
 #from abc import abstractmethod
@@ -123,19 +125,19 @@ def shorten(s, l=80):
     return s[:l-3] + '...'
 
 #commands dose not work on windows..
-def system(cmd):
-    logging.info(cmd)
+def system(cmd, log=True):
+    if log: logging.info(cmd)
     r = commands.getoutput(cmd)
-    logging.debug(r)
+    if log: logging.debug(r)
     return r
 	
-def system(cmd):
-    logging.info(cmd)
+def system(cmd, log=True):
+    if log: logging.info(cmd)
     from subprocess import Popen, PIPE
     p = Popen(cmd, shell=True, bufsize = 102400, stdout=PIPE)
     p.wait()
     r = p.stdout.read()
-    logging.debug(r)
+    if log: logging.debug(r)
     return r
 
 def md5_for_file(f, block_size=2**20):
@@ -260,11 +262,11 @@ def parse_args(func, log_filename='stat.log'):
             sys.exit()
     log_path = os.path.dirname(os.path.realpath(__file__)) + '/../log/' + log_filename
     if verbose == 0:
-        init_logging(logging.INFO, False, log_path)
+        init_logging(logging.root, logging.INFO, False, log_path)
     elif verbose == 1:
-        init_logging(logging.INFO, True, log_path)
+        init_logging(logging.root, logging.INFO, True, log_path)
     elif verbose > 1:
-        init_logging(logging.DEBUG, True, log_path)
+        init_logging(logging.root, logging.DEBUG, True, log_path)
 
     func(args)
 
