@@ -10,6 +10,8 @@ import os, sys
 import re, time
 import logging
 
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + './')
+
 from common import *
 
 def test_ddict():
