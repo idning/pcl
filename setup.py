@@ -3,7 +3,7 @@ from setuptools import setup
 import sys
 import platform
 
-__VERSION__ = "1.3" 
+__VERSION__ = "1.0" 
 
 requires = ['simplejson']
 if sys.version_info < (2,7):
