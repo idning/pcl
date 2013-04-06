@@ -12,7 +12,14 @@ import logging
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + './')
 
-from common import *
+from pcl.common import *
+from pcl import httpc
+
+
+def test_httpc():
+    c = httpc.CurlHTTPC()
+    resp = c.get('http://www.baidu.com')
+    print resp['header']
 
 def test_ddict():
 
@@ -41,8 +48,10 @@ def test_ddict():
 def main():
     """docstring for main"""
     test_ddict()
+    test_httpc()
 
 
 if __name__ == "__main__":
     main()
+
 
