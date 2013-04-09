@@ -20,6 +20,7 @@ from cStringIO import StringIO
 #from abc import abstractmethod
 from urlparse import urlparse
 from common import shorten, system
+import common
 
 logger = logging.getLogger('pyhttpclient')
 
@@ -572,5 +573,14 @@ def select_best_httpc():
     except :
         logger.debug('use httplib httpclient')
         return HttplibHTTPC
+
+def init_logging(set_level = logging.INFO, 
+                 console = True,
+                 log_file_path = None):
+    '''
+    we can use: 
+        httpc.init_logging(logging.ERROR)
+    '''
+    common.init_logging(logger, set_level, console, log_file_path)
 
 __all__ = ['network', 'HTTPException', 'CurlHTTPC', 'PyCurlHTTPC', 'HttplibHTTPC', 'select_best_httpc', 'logger']
