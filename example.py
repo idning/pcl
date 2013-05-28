@@ -15,9 +15,12 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + './')
 from pcl.common import *
 from pcl import httpc
 
+logger = logging.getLogger('pyhttpclient')
+init_logging(logger, logging.DEBUG)
 
 def test_httpc():
     c = httpc.CurlHTTPC()
+    c = httpc.HttplibHTTPC()
     resp = c.get('http://www.baidu.com')
     print resp['header']
 

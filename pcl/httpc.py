@@ -71,6 +71,17 @@ class FilePartReader:
     def read_all(self):
         return self.read_callback(self.length)
 
+def parse_header_list(header):
+    def parse_cookie(l):
+        return l.split(';')[0]
+
+    cookies = [parse_cookie(b) for (a,b) in header if a=='set-cookie']
+    cookies = [c for c in cookies if c.find('=') !=-1 ]
+    header = dict(header)
+    if cookies:
+        header ['set-cookie'] = ';'.join(cookies)
+    return header
+
 class HTTPC:
     ''' define the http client interface'''
     def __init__(self):
@@ -110,7 +121,9 @@ class HTTPC:
         header = [i.split(':', 1) for i in header.split('\r\n') ]
         header = [i for i in header if len(i)>1 ]
         header = [[a.strip().lower(), b.strip()]for (a,b) in header ]
-        return (status, dict(header) )
+
+        return (status, parse_header_list(header))
+
 
 class CurlHTTPC(HTTPC):
     'use linux curl command , just for debug '
@@ -428,8 +441,19 @@ class HttplibHTTPC(HTTPC):
         for (k, v) in response.getheaders():
             logger.debug('< %s: %s' % (k, v))
         logger.debug('< ' + shorten(data, 1024))
+        lst = response.getheaders()
+        d = dict(lst)
+        if 'set-cookie' in d:
+            #print 'xxxxxxxxxxx'
+            tmp = d['set-cookie'].split(', ') #this is used in httplib...
+            del d['set-cookie']
+            lst = d.items()
+            for cookie in tmp:
+                #print 'xxxxxxxxxx', cookie
+                lst.append(('set-cookie', cookie))
+
         rst = { 'status': response.status, 
-                'header' : dict(response.getheaders()), 
+                'header' : parse_header_list(lst), 
                 'body': resp_body, 
                 'body_file': None, 
                 }
