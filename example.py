@@ -48,10 +48,16 @@ def test_ddict():
     d['3']['8']+=7
     print d
 
+def test_console_logging():
+    console_logging.info("console logging")
+    console_logging.warn("console logging warn!")
+    console_logging.error("console logging error!")
+
 def main():
     """docstring for main"""
     test_ddict()
     test_httpc()
+    test_console_logging()
 
 
 if __name__ == "__main__":

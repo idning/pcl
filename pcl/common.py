@@ -148,12 +148,12 @@ def md5_for_file(f, block_size=2**20):
         if not data:
             break
         md5.update(data)
-    return md5.digest()
+    return md5.hexdigest()
 
 def md5_for_content(data):
     md5 = hashlib.md5()
     md5.update(data)
-    return md5.digest()
+    return md5.hexdigest()
 
 
 def first_second(cur, period='all'):
@@ -277,3 +277,21 @@ def json_encode(j):
 def json_decode(j):
     return json.loads(j)
 
+class ConsoleLogging():
+    @staticmethod
+    def debug(msg):
+        print('[DEBUG] ' + msg)
+
+    @staticmethod
+    def info(msg):
+        print to_green('[INFO] ' + msg)
+
+    @staticmethod
+    def warn(msg):
+        print to_yellow('[WARN]' + msg)
+
+    @staticmethod
+    def error(msg):
+        print to_red('[ERROR] ' + msg)
+
+console_logging = ConsoleLogging()
