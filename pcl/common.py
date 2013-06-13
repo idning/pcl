@@ -277,7 +277,13 @@ def json_encode(j):
 def json_decode(j):
     return json.loads(j)
 
+
 class ConsoleLogging():
+    '''
+    对于console类型的应用, 如mongodeploy, bcsh 之类, 在段时间内在console运行，记录日志通常是没有必要的. 
+    此时有颜色的console logging会更加合适.
+
+    '''
     @staticmethod
     def debug(msg):
         print('[DEBUG] ' + msg)
