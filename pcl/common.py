@@ -235,7 +235,7 @@ def init_logging(logger, set_level = logging.INFO,
         logger.addHandler(fh)
 
     if log_file_path:
-        fh = logging.FileHandler(log_file_path)
+        fh = logging.TimedRotatingFileHandler(log_file_path)
         fh.setLevel(set_level)
         formatter = logging.Formatter("%(asctime)-15s %(levelname)s  %(message)s")
         fh.setFormatter(formatter)
@@ -270,6 +270,21 @@ def parse_args(func, log_filename='stat.log'):
 
     func(args)
 
+# add @ 20130625
+def parse_args(func, default_log_filename='xxx.log'):
+    import argparse
+    parser_shared = argparse.ArgumentParser()
+    parser_shared.add_argument('-v', '--verbose', action='count', help="verbose") 
+    parser_shared.add_argument('-o', '--logfile', default=default_log_filename) 
+
+    args = parser.parse_known_args()
+
+    if verbose == 0:
+        init_logging(logging.root, logging.INFO, False, log_path)
+    elif verbose == 1:
+        init_logging(logging.root, logging.INFO, True, log_path)
+    elif verbose > 1:
+        init_logging(logging.root, logging.DEBUG, True, log_path)
 
 def json_encode(j):
     return json.dumps(j, indent=4)
