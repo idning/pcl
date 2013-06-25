@@ -130,13 +130,13 @@ def system(cmd, log_fun=logging.info):
     r = commands.getoutput(cmd)
     return r
 	
-def system(cmd, log_fun=logging.info):
-    if log_fun: log_fun(cmd)
-    from subprocess import Popen, PIPE
-    p = Popen(cmd, shell=True, bufsize = 102400, stdout=PIPE)
-    p.wait()
-    r = p.stdout.read()
-    return r
+#def system(cmd, log_fun=logging.info):
+    #if log_fun: log_fun(cmd)
+    #from subprocess import Popen, PIPE
+    #p = Popen(cmd, shell=True, bufsize = 102400, stdout=PIPE)
+    #p.wait()
+    #r = p.stdout.read()
+    #return r
 
 def md5_for_file(f, block_size=2**20):
     f = open(f, 'rb')
