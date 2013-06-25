@@ -125,19 +125,17 @@ def shorten(s, l=80):
     return s[:l-3] + '...'
 
 #commands dose not work on windows..
-def system(cmd, log=True):
-    if log: logging.info(cmd)
+def system(cmd, log_fun=logging.info):
+    if log_fun: log_fun(cmd)
     r = commands.getoutput(cmd)
-    if log: logging.debug(r)
     return r
 	
-def system(cmd, log=True):
-    if log: logging.info(cmd)
+def system(cmd, log_fun=logging.info):
+    if log_fun: log_fun(cmd)
     from subprocess import Popen, PIPE
     p = Popen(cmd, shell=True, bufsize = 102400, stdout=PIPE)
     p.wait()
     r = p.stdout.read()
-    if log: logging.debug(r)
     return r
 
 def md5_for_file(f, block_size=2**20):
