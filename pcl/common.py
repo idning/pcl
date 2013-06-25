@@ -216,6 +216,43 @@ def format_time(timestamp):
     t = datetime.fromtimestamp(float(timestamp))
     return t.strftime(ISOTIMEFORMAT)
 
+class ColorFormatter(logging.Formatter):
+    '''
+    cool class
+    '''
+    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+    COLORS = {
+        'WARNING'  : YELLOW,
+        'INFO'     : BLUE,
+        'DEBUG'    : GREEN, #WHITE
+        'CRITICAL' : YELLOW,
+        'ERROR'    : RED,
+
+        'RED'      : RED,
+        'GREEN'    : GREEN,
+        'YELLOW'   : YELLOW,
+        'BLUE'     : BLUE,
+        'MAGENTA'  : MAGENTA,
+        'CYAN'     : CYAN,
+        'WHITE'    : WHITE,
+    }
+
+    RESET_SEQ = "\033[0m"
+    COLOR_SEQ = "\033[1;%dm"
+    BOLD_SEQ  = "\033[1m"
+
+    def __init__(self, *args, **kwargs):
+        # can't do super(...) here because Formatter is an old school class
+        logging.Formatter.__init__(self, *args, **kwargs)
+
+    def format(self, record):
+        levelname = record.levelname
+        color     = ColorFormatter.COLOR_SEQ % (30 + ColorFormatter.COLORS[levelname])
+        message   = logging.Formatter.format(self, record)
+        return color + message + ColorFormatter.RESET_SEQ
+
+logging.ColorFormatter = ColorFormatter
+
 '''
 set_level 设为
 '''
@@ -230,17 +267,18 @@ def init_logging(logger, set_level = logging.INFO,
     if console:
         fh = logging.StreamHandler()
         fh.setLevel(set_level)
-        formatter = logging.Formatter("[%(levelname)s] %(message)s")
+        formatter = logging.ColorFormatter("%(asctime)-15s [%(levelname)s] %(message)s")
         fh.setFormatter(formatter)
         logger.addHandler(fh)
 
     if log_file_path:
-        fh = logging.TimedRotatingFileHandler(log_file_path)
+        from logging.handlers import TimedRotatingFileHandler
+
+        fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5)
         fh.setLevel(set_level)
-        formatter = logging.Formatter("%(asctime)-15s %(levelname)s  %(message)s")
+        formatter = logging.Formatter("%(asctime)-15s [%(levelname)s] %(message)s")
         fh.setFormatter(formatter)
         logger.addHandler(fh)
-
 
 def parse_args(func, log_filename='stat.log'):
     try:
@@ -271,20 +309,28 @@ def parse_args(func, log_filename='stat.log'):
     func(args)
 
 # add @ 20130625
-def parse_args(func, default_log_filename='xxx.log'):
+def parse_args2(default_log_filename='xxx.log'):
     import argparse
-    parser_shared = argparse.ArgumentParser()
-    parser_shared.add_argument('-v', '--verbose', action='count', help="verbose") 
-    parser_shared.add_argument('-o', '--logfile', default=default_log_filename) 
+    parser= argparse.ArgumentParser()
+    parser.add_argument('-v', '--verbose', action='count', help="verbose", default=0) 
+    parser.add_argument('-o', '--logfile', default=default_log_filename) 
 
-    args = parser.parse_known_args()
-
-    if verbose == 0:
-        init_logging(logging.root, logging.INFO, False, log_path)
-    elif verbose == 1:
-        init_logging(logging.root, logging.INFO, True, log_path)
-    elif verbose > 1:
-        init_logging(logging.root, logging.DEBUG, True, log_path)
+    (args, remaining) = parser.parse_known_args()
+    #print args
+    #print args.logfile
+    #print args.verbose
+    logging.info(args)
+    #loggers = [logging.root, logging.getLogger('pyhttpclient')]
+    loggers = [logging.root]
+    if args.verbose == 0:
+        for logger in loggers:
+            init_logging(logger, logging.INFO, False, args.logfile)
+    elif args.verbose == 1:
+        for logger in loggers:
+            init_logging(logger, logging.INFO, True, args.logfile)
+    elif args.verbose > 1:
+        for logger in loggers:
+            init_logging(logger, logging.DEBUG, True, args.logfile)
 
 def json_encode(j):
     return json.dumps(j, indent=4)
@@ -293,26 +339,26 @@ def json_decode(j):
     return json.loads(j)
 
 
-class ConsoleLogging():
-    '''
-    对于console类型的应用, 如mongodeploy, bcsh 之类, 在段时间内在console运行，记录日志通常是没有必要的. 
-    此时有颜色的console logging会更加合适.
+#class ConsoleLogging():
+    #'''
+    #对于console类型的应用, 如mongodeploy, bcsh 之类, 在段时间内在console运行，记录日志通常是没有必要的. 
+    #此时有颜色的console logging会更加合适.
 
-    '''
-    @staticmethod
-    def debug(msg):
-        print('[DEBUG] ' + msg)
+    #'''
+    #@staticmethod
+    #def debug(msg):
+        #print('[DEBUG] ' + msg)
 
-    @staticmethod
-    def info(msg):
-        print to_green('[INFO] ' + msg)
+    #@staticmethod
+    #def info(msg):
+        #print to_green('[INFO] ' + msg)
 
-    @staticmethod
-    def warn(msg):
-        print to_yellow('[WARN]' + msg)
+    #@staticmethod
+    #def warn(msg):
+        #print to_yellow('[WARN]' + msg)
 
-    @staticmethod
-    def error(msg):
-        print to_red('[ERROR] ' + msg)
+    #@staticmethod
+    #def error(msg):
+        #print to_red('[ERROR] ' + msg)
 
-console_logging = ConsoleLogging()
+#console_logging = ConsoleLogging()
