@@ -332,6 +332,8 @@ def parse_args2(default_log_filename='xxx.log'):
         for logger in loggers:
             init_logging(logger, logging.DEBUG, True, args.logfile)
 
+    return remaining
+
 def json_encode(j):
     return json.dumps(j, indent=4)
 
