@@ -58,8 +58,8 @@ def test_logging():
     logging.info("this is info")
     logging.warn("this is warn")
     logging.error("this is error")
-    logging.exception("this is exception")
-    logging.critical("this is critical")
+    #logging.exception("this is exception")
+    #logging.critical("this is critical")
 
 def main():
     """docstring for main"""

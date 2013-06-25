@@ -1,6 +1,7 @@
 #ning
 *.data
 *.out
+*.log
 
 
 *.py[co]
