@@ -265,7 +265,7 @@ def init_logging(logger, set_level = logging.INFO,
     if console:
         fh = logging.StreamHandler()
         fh.setLevel(set_level)
-        formatter = logging.ColorFormatter("%(asctime)-15s [%(levelname)s] %(message)s")
+        formatter = logging.ColorFormatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
         fh.setFormatter(formatter)
         logger.addHandler(fh)
 
@@ -274,7 +274,7 @@ def init_logging(logger, set_level = logging.INFO,
 
         fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5)
         fh.setLevel(set_level)
-        formatter = logging.Formatter("%(asctime)-15s [%(levelname)s] %(message)s")
+        formatter = logging.Formatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
         fh.setFormatter(formatter)
         logger.addHandler(fh)
 
@@ -307,13 +307,16 @@ def parse_args(func, log_filename='stat.log'):
     func(args)
 
 # add @ 20130625
-def parse_args2(default_log_filename='xxx.log'):
+def parse_args2(default_log_filename='xxx.log', parser = None):
     import argparse
-    parser= argparse.ArgumentParser()
+    if not parser:
+        parser= argparse.ArgumentParser()
+
     parser.add_argument('-v', '--verbose', action='count', help="verbose", default=0) 
     parser.add_argument('-o', '--logfile', default=default_log_filename) 
 
-    (args, remaining) = parser.parse_known_args()
+    #(args, remaining) = parser.parse_known_args()
+    args = parser.parse_args()
     #print args
     #print args.logfile
     #print args.verbose
@@ -330,7 +333,7 @@ def parse_args2(default_log_filename='xxx.log'):
         for logger in loggers:
             init_logging(logger, logging.DEBUG, True, args.logfile)
 
-    return remaining
+    return args
 
 def json_encode(j):
     return json.dumps(j, indent=4)
