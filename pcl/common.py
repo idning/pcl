@@ -218,25 +218,34 @@ class ColorFormatter(logging.Formatter):
     '''
     cool class
     '''
-    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
-    COLORS = {
-        'WARNING'  : YELLOW,
-        'INFO'     : BLUE,
-        'DEBUG'    : GREEN, #WHITE
-        'CRITICAL' : YELLOW,
-        'ERROR'    : RED,
+    Black            = '0;30'
+    Red              = '0;31'
+    Green            = '0;32'
+    Brown            = '0;33'
+    Blue             = '0;34'
+    Purple           = '0;35'
+    Cyan             = '0;36'
+    Light_Gray       = '0;37'
+                     
+    Dark_Gray        = '1;30'
+    Light_Red        = '1;31'
+    Light_Green      = '1;32'
+    Yellow           = '1;33'
+    Light_Blue       = '1;34'
+    Light_Purple     = '1;35'
+    Light_Cyan       = '1;36'
+    White            = '1;37'
 
-        'RED'      : RED,
-        'GREEN'    : GREEN,
-        'YELLOW'   : YELLOW,
-        'BLUE'     : BLUE,
-        'MAGENTA'  : MAGENTA,
-        'CYAN'     : CYAN,
-        'WHITE'    : WHITE,
+    COLORS = {
+        'WARNING'  : Yellow,
+        'INFO'     : Blue,
+        'DEBUG'    : Dark_Gray, #WHITE
+        'CRITICAL' : Yellow,
+        'ERROR'    : Red,
     }
 
     RESET_SEQ = "\033[0m"
-    COLOR_SEQ = "\033[1;%dm"
+    COLOR_SEQ = "\033[%sm"
     BOLD_SEQ  = "\033[1m"
 
     def __init__(self, *args, **kwargs):
@@ -245,7 +254,7 @@ class ColorFormatter(logging.Formatter):
 
     def format(self, record):
         levelname = record.levelname
-        color     = ColorFormatter.COLOR_SEQ % (30 + ColorFormatter.COLORS[levelname])
+        color     = ColorFormatter.COLOR_SEQ % (ColorFormatter.COLORS[levelname])
         message   = logging.Formatter.format(self, record)
         return color + message + ColorFormatter.RESET_SEQ
 
@@ -365,3 +374,49 @@ def json_decode(j):
         #print to_red('[ERROR] ' + msg)
 
 #console_logging = ConsoleLogging()
+
+
+import sys, time
+from select import select
+
+import platform
+if platform.system() == "Windows":
+    import msvcrt
+
+def input_with_timeout_sane(prompt, timeout, default):
+    """Read an input from the user or timeout"""
+    print prompt,
+    sys.stdout.flush()
+    rlist, _, _ = select([sys.stdin], [], [], timeout)
+    if rlist:
+        s = sys.stdin.readline().replace('\n','')
+    else:
+        s = default
+        print s
+    return s
+
+def input_with_timeout_windows(prompt, timeout, default): 
+    start_time = time.time()
+    print prompt,
+    sys.stdout.flush()
+    input = ''
+    while True:
+        if msvcrt.kbhit():
+            chr = msvcrt.getche()
+            if ord(chr) == 13: # enter_key
+                break
+            elif ord(chr) >= 32: #space_char
+                input += chr
+        if len(input) == 0 and (time.time() - start_time) > timeout:
+            break
+    if len(input) > 0:
+        return input
+    else:
+        return default
+
+def input_with_timeout(prompt, timeout, default=''):
+    if platform.system() == "Windows":
+        return input_with_timeout_windows(prompt, timeout, default)
+    else:
+        return input_with_timeout_sane(prompt, timeout, default)
+
