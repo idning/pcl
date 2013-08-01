@@ -238,10 +238,10 @@ class ColorFormatter(logging.Formatter):
 
     COLORS = {
         'WARNING'  : Yellow,
-        'INFO'     : Blue,
-        'DEBUG'    : Dark_Gray, #WHITE
+        'INFO'     : Light_Blue,
+        'DEBUG'    : Black, #WHITE
         'CRITICAL' : Yellow,
-        'ERROR'    : Red,
+        'ERROR'    : Light_Red,
     }
 
     RESET_SEQ = "\033[0m"
@@ -420,3 +420,31 @@ def input_with_timeout(prompt, timeout, default=''):
     else:
         return input_with_timeout_sane(prompt, timeout, default)
 
+def test_colors():
+    colors = [
+        ('Black'            , '0;30'),
+        ('Red'              , '0;31'),
+        ('Green'            , '0;32'),
+        ('Brown'            , '0;33'),
+        ('Blue'             , '0;34'),
+        ('Purple'           , '0;35'),
+        ('Cyan'             , '0;36'),
+        ('Light_Gray'       , '0;37'),
+        
+        ('Dark_Gray'        , '1;30'),
+        ('Light_Red'        , '1;31'),
+        ('Light_Green'      , '1;32'),
+        ('Yellow'           , '1;33'),
+        ('Light_Blue'       , '1;34'),
+        ('Light_Purple'     , '1;35'),
+        ('Light_Cyan'       , '1;36'),
+        ('White'            , '1;37'),
+    ]
+    COLOR_SEQ = "\033[%sm"
+    RESET_SEQ = "\033[0m"
+    for c in colors: 
+        print COLOR_SEQ % c[1] + c[0] + RESET_SEQ
+
+
+if __name__ == "__main__":
+    test_colors()
