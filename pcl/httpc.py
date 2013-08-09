@@ -187,7 +187,7 @@ class CurlHTTPC(HTTPC):
         name = name.replace(' ', '_')
         name = name.replace(':', '_')
         name = name.replace('.', '_')
-        system ('find "%s" -amin +%d 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null' % (self.tmp_dir, self.keep_minute), log=False )
+        system ('find "%s" -amin +%d 2>/dev/null | xargs rm -f 2>/dev/null 1>/dev/null' % (self.tmp_dir, self.keep_minute), log_fun=None)
         return self.tmp_dir + key + name
 
     def _headers2txt(self, headers):
