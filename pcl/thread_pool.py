@@ -77,6 +77,7 @@ def test():
     import socket  
     socket.setdefaulttimeout(10)  
     print 'start testing'  
+
     wm = WorkerManager(10)  
     for i in range(5):  
         wm.add_job( _test_job, i, i*0.001 )  

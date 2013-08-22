@@ -209,10 +209,16 @@ def format_size(input):
     return '%d' % input
 
 
-def format_time(timestamp):
-    ISOTIMEFORMAT = '%Y-%m-%d %X'
+def format_time(timestamp=None, fmt='%Y-%m-%d %X'):
+    if not timestamp:
+        timestamp = time.time()
     t = datetime.fromtimestamp(float(timestamp))
-    return t.strftime(ISOTIMEFORMAT)
+    return t.strftime(fmt)
+
+def format_time_to_hour(timestamp=None):
+    return format_time(timestamp, '%Y%m%d%H')
+def format_time_to_min(timestamp=None):
+    return format_time(timestamp, '%Y%m%d%H%M')
 
 class ColorFormatter(logging.Formatter):
     '''
@@ -281,7 +287,7 @@ def init_logging(logger, set_level = logging.INFO,
     if log_file_path:
         from logging.handlers import TimedRotatingFileHandler
 
-        fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5)
+        fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5, when='midnight')
         fh.setLevel(set_level)
         formatter = logging.Formatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
         fh.setFormatter(formatter)
@@ -329,6 +335,7 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
     #print args
     #print args.logfile
     #print args.verbose
+    logging.info("start running: " + ' '.join(sys.argv))
     logging.info(args)
     #loggers = [logging.root, logging.getLogger('pyhttpclient')]
     loggers = [logging.root]
@@ -344,8 +351,20 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
 
     return args
 
+import json
+from time import mktime
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return int(mktime(obj.timetuple()))
+
+        return json.JSONEncoder.default(self, obj)
+
+#print json.dumps(obj, cls = MyEncoder)
+
 def json_encode(j):
-    return json.dumps(j, indent=4)
+    return json.dumps(j, indent=4, cls=MyEncoder)
 
 def json_decode(j):
     return json.loads(j)

@@ -61,6 +61,11 @@ def test_logging():
     #logging.exception("this is exception")
     #logging.critical("this is critical")
 
+def test_format_time():
+    print format_time()
+    print format_time_to_hour()
+    print format_time_to_min()
+
 def main():
     """docstring for main"""
     parse_args2()
@@ -69,6 +74,7 @@ def main():
     test_httpc()
     #test_console_logging()
     test_logging()
+    test_format_time()
 
 
 if __name__ == "__main__":
