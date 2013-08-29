@@ -267,91 +267,6 @@ class ColorFormatter(logging.Formatter):
 
 logging.ColorFormatter = ColorFormatter
 
-'''
-set_level 设为
-'''
-def init_logging(logger, set_level = logging.INFO, 
-        console = True,
-        log_file_path = None):
-
-    logger.setLevel(logging.DEBUG)
-    logger.propagate = False # it's parent will not print log (especially when client use a 'root' logger)
-    for h in logger.handlers:
-        logger.removeHandler(h)
-    if console:
-        fh = logging.StreamHandler()
-        fh.setLevel(set_level)
-        formatter = logging.ColorFormatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-    if log_file_path:
-        from logging.handlers import TimedRotatingFileHandler
-
-        fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5, when='midnight')
-        fh.setLevel(set_level)
-        formatter = logging.Formatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-def parse_args(func, log_filename='stat.log'):
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdvw", ["help", "debug", "verbose", "hour"])
-    except getopt.GetoptError:
-        usage()
-        sys.exit(0)
-    verbose = 0
-    debug = False
-
-    for o, a in opts:
-        if o == "-d":
-            verbose = True
-            debug = True
-        if o == "-v":
-            verbose += 1
-        if o in ("-h", "--help"):
-            usage()
-            sys.exit()
-    log_path = os.path.dirname(os.path.realpath(__file__)) + '/../log/' + log_filename
-    if verbose == 0:
-        init_logging(logging.root, logging.INFO, False, log_path)
-    elif verbose == 1:
-        init_logging(logging.root, logging.INFO, True, log_path)
-    elif verbose > 1:
-        init_logging(logging.root, logging.DEBUG, True, log_path)
-
-    func(args)
-
-# add @ 20130625
-def parse_args2(default_log_filename='xxx.log', parser = None):
-    import argparse
-    if not parser:
-        parser= argparse.ArgumentParser()
-
-    parser.add_argument('-v', '--verbose', action='count', help="verbose", default=0) 
-    parser.add_argument('-o', '--logfile', default=default_log_filename) 
-
-    #(args, remaining) = parser.parse_known_args()
-    args = parser.parse_args()
-    #print args
-    #print args.logfile
-    #print args.verbose
-    #loggers = [logging.root, logging.getLogger('pyhttpclient')]
-    loggers = [logging.root]
-    if args.verbose == 0:
-        for logger in loggers:
-            init_logging(logger, logging.INFO, False, args.logfile)
-    elif args.verbose == 1:
-        for logger in loggers:
-            init_logging(logger, logging.INFO, True, args.logfile)
-    elif args.verbose > 1:
-        for logger in loggers:
-            init_logging(logger, logging.DEBUG, True, args.logfile)
-
-    logging.info("start running: " + ' '.join(sys.argv))
-    logging.info(args)
-    return args
-
 #add a NOTICE log level
 '''
 the python logging levels:
@@ -406,6 +321,91 @@ logging.notice = root_notice
 
 # add NOTICE to the priority map of all the levels
 #logging.handlers.SysLogHandler.priority_map['NOTICE'] = 'notice'
+
+'''
+set_level 设为
+'''
+def init_logging(logger, set_level = logging.INFO, 
+        console = True,
+        log_file_path = None):
+
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False # it's parent will not print log (especially when client use a 'root' logger)
+    for h in logger.handlers:
+        logger.removeHandler(h)
+    if console:
+        fh = logging.StreamHandler()
+        fh.setLevel(set_level)
+        formatter = logging.ColorFormatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+    if log_file_path:
+        from logging.handlers import TimedRotatingFileHandler
+
+        fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5, when='midnight')
+        fh.setLevel(set_level)
+        formatter = logging.Formatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+def parse_args(func, log_filename='stat.log'):
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hdvw", ["help", "debug", "verbose", "hour"])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(0)
+    verbose = 0
+    debug = False
+
+    for o, a in opts:
+        if o == "-d":
+            verbose = True
+            debug = True
+        if o == "-v":
+            verbose += 1
+        if o in ("-h", "--help"):
+            usage()
+            sys.exit()
+    log_path = os.path.dirname(os.path.realpath(__file__)) + '/../log/' + log_filename
+    if verbose == 0:
+        init_logging(logging.root, logging.NOTICE, True, log_path)
+    elif verbose == 1:
+        init_logging(logging.root, logging.INFO, True, log_path)
+    elif verbose > 1:
+        init_logging(logging.root, logging.DEBUG, True, log_path)
+
+    func(args)
+
+# add @ 20130625
+def parse_args2(default_log_filename='xxx.log', parser = None):
+    import argparse
+    if not parser:
+        parser= argparse.ArgumentParser()
+
+    parser.add_argument('-v', '--verbose', action='count', help="verbose", default=0) 
+    parser.add_argument('-o', '--logfile', default=default_log_filename) 
+
+    #(args, remaining) = parser.parse_known_args()
+    args = parser.parse_args()
+    #print args
+    #print args.logfile
+    #print args.verbose
+    #loggers = [logging.root, logging.getLogger('pyhttpclient')]
+    loggers = [logging.root]
+    if args.verbose == 0:
+        for logger in loggers:
+            init_logging(logger, logging.NOTICE, True, args.logfile)
+    elif args.verbose == 1:
+        for logger in loggers:
+            init_logging(logger, logging.INFO, True, args.logfile)
+    elif args.verbose > 1:
+        for logger in loggers:
+            init_logging(logger, logging.DEBUG, True, args.logfile)
+
+    logging.info("start running: " + ' '.join(sys.argv))
+    logging.info(args)
+    return args
 
 
 
