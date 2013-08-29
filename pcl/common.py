@@ -335,8 +335,6 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
     #print args
     #print args.logfile
     #print args.verbose
-    logging.info("start running: " + ' '.join(sys.argv))
-    logging.info(args)
     #loggers = [logging.root, logging.getLogger('pyhttpclient')]
     loggers = [logging.root]
     if args.verbose == 0:
@@ -349,6 +347,8 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
         for logger in loggers:
             init_logging(logger, logging.DEBUG, True, args.logfile)
 
+    logging.info("start running: " + ' '.join(sys.argv))
+    logging.info(args)
     return args
 
 import json
