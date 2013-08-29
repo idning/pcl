@@ -56,6 +56,7 @@ def test_ddict():
 def test_logging():
     logging.debug("this is debug")
     logging.info("this is info")
+    logging.notice("this is notice")
     logging.warn("this is warn")
     logging.error("this is error")
     #logging.exception("this is exception")

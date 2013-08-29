@@ -243,11 +243,12 @@ class ColorFormatter(logging.Formatter):
     White            = '1;37'
 
     COLORS = {
-        'WARNING'  : Yellow,
-        'INFO'     : Light_Blue,
         'DEBUG'    : Dark_Gray, #WHITE
-        'CRITICAL' : Yellow,
+        'INFO'     : Light_Blue,
+        'NOTICE'   : Light_Green,
+        'WARNING'  : Yellow,
         'ERROR'    : Light_Red,
+        'CRITICAL' : Yellow,
     }
 
     RESET_SEQ = "\033[0m"
@@ -350,6 +351,63 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
     logging.info("start running: " + ' '.join(sys.argv))
     logging.info(args)
     return args
+
+#add a NOTICE log level
+'''
+the python logging levels:
+
+debug               10
+info (trace)        20
+notice              ??  we use 25
+warning             30
+error               40
+fatal/critical      50
+
+we add a notice to it
+
+'''
+
+logging.NOTICE = 25
+
+logging.addLevelName(logging.NOTICE, 'NOTICE')
+
+# define a new logger function for notice
+# this is exactly like existing info, critical, debug...etc
+def Logger_notice(self, msg, *args, **kwargs):
+    """
+    Log 'msg % args' with severity 'NOTICE'.
+
+    To pass exception information, use the keyword argument exc_info
+with
+    a true value, e.g.
+
+    logger.notice("Houston, we have a %s", "major disaster", exc_info=1)
+    """
+    if self.manager.disable >= logging.NOTICE:
+        return
+    if logging.NOTICE >= self.getEffectiveLevel():
+        apply(self._log, (logging.NOTICE, msg, args), kwargs)
+
+# make the notice function known in the system Logger class
+logging.Logger.notice = Logger_notice
+
+# define a new root level notice function
+# this is exactly like existing info, critical, debug...etc
+def root_notice(msg, *args, **kwargs):
+    """
+    Log a message with severity 'NOTICE' on the root logger.
+    """
+    if len(logging.root.handlers) == 0:
+        basicConfig()
+    apply(logging.root.notice, (msg,)+args, kwargs)
+
+# make the notice root level function known
+logging.notice = root_notice
+
+# add NOTICE to the priority map of all the levels
+#logging.handlers.SysLogHandler.priority_map['NOTICE'] = 'notice'
+
+
 
 import json
 from time import mktime
