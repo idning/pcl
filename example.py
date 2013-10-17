@@ -67,6 +67,9 @@ def test_format_time():
     print format_time_to_hour()
     print format_time_to_min()
 
+def test_tail():
+    print 'tail of example.py:', tail('example.py', 1)
+
 def main():
     """docstring for main"""
     parse_args2()
@@ -76,7 +79,7 @@ def main():
     #test_console_logging()
     test_logging()
     test_format_time()
-
+    test_tail()
 
 if __name__ == "__main__":
     main()
