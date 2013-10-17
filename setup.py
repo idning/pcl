@@ -5,10 +5,10 @@ import platform
 
 __VERSION__ = "1.0" 
 
-requires = ['simplejson']
+requires = []
 if sys.version_info < (2,7):
+    requires = ['simplejson']
     requires.append('argparse')
-
 
 setup(
     name = "pcl",

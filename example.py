@@ -56,10 +56,16 @@ def test_ddict():
 def test_logging():
     logging.debug("this is debug")
     logging.info("this is info")
+    logging.notice("this is notice")
     logging.warn("this is warn")
     logging.error("this is error")
     #logging.exception("this is exception")
     #logging.critical("this is critical")
+
+def test_format_time():
+    print format_time()
+    print format_time_to_hour()
+    print format_time_to_min()
 
 def main():
     """docstring for main"""
@@ -69,6 +75,7 @@ def main():
     test_httpc()
     #test_console_logging()
     test_logging()
+    test_format_time()
 
 
 if __name__ == "__main__":

@@ -209,10 +209,16 @@ def format_size(input):
     return '%d' % input
 
 
-def format_time(timestamp):
-    ISOTIMEFORMAT = '%Y-%m-%d %X'
+def format_time(timestamp=None, fmt='%Y-%m-%d %X'):
+    if not timestamp:
+        timestamp = time.time()
     t = datetime.fromtimestamp(float(timestamp))
-    return t.strftime(ISOTIMEFORMAT)
+    return t.strftime(fmt)
+
+def format_time_to_hour(timestamp=None):
+    return format_time(timestamp, '%Y%m%d%H')
+def format_time_to_min(timestamp=None):
+    return format_time(timestamp, '%Y%m%d%H%M')
 
 def format_time(timestamp=None, fmt='%Y-%m-%d %X'):
     if not timestamp:
@@ -224,25 +230,35 @@ class ColorFormatter(logging.Formatter):
     '''
     cool class
     '''
-    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
-    COLORS = {
-        'WARNING'  : YELLOW,
-        'INFO'     : BLUE,
-        'DEBUG'    : GREEN, #WHITE
-        'CRITICAL' : YELLOW,
-        'ERROR'    : RED,
+    Black            = '0;30'
+    Red              = '0;31'
+    Green            = '0;32'
+    Brown            = '0;33'
+    Blue             = '0;34'
+    Purple           = '0;35'
+    Cyan             = '0;36'
+    Light_Gray       = '0;37'
+                     
+    Dark_Gray        = '1;30'
+    Light_Red        = '1;31'
+    Light_Green      = '1;32'
+    Yellow           = '1;33'
+    Light_Blue       = '1;34'
+    Light_Purple     = '1;35'
+    Light_Cyan       = '1;36'
+    White            = '1;37'
 
-        'RED'      : RED,
-        'GREEN'    : GREEN,
-        'YELLOW'   : YELLOW,
-        'BLUE'     : BLUE,
-        'MAGENTA'  : MAGENTA,
-        'CYAN'     : CYAN,
-        'WHITE'    : WHITE,
+    COLORS = {
+        'DEBUG'    : Dark_Gray, #WHITE
+        'INFO'     : Light_Blue,
+        'NOTICE'   : Light_Green,
+        'WARNING'  : Yellow,
+        'ERROR'    : Light_Red,
+        'CRITICAL' : Yellow,
     }
 
     RESET_SEQ = "\033[0m"
-    COLOR_SEQ = "\033[1;%dm"
+    COLOR_SEQ = "\033[%sm"
     BOLD_SEQ  = "\033[1m"
 
     def __init__(self, *args, **kwargs):
@@ -251,11 +267,66 @@ class ColorFormatter(logging.Formatter):
 
     def format(self, record):
         levelname = record.levelname
-        color     = ColorFormatter.COLOR_SEQ % (30 + ColorFormatter.COLORS[levelname])
+        color     = ColorFormatter.COLOR_SEQ % (ColorFormatter.COLORS[levelname])
         message   = logging.Formatter.format(self, record)
         return color + message + ColorFormatter.RESET_SEQ
 
 logging.ColorFormatter = ColorFormatter
+
+#add a NOTICE log level
+'''
+the python logging levels:
+
+debug               10
+info (trace)        20
+notice              ??  we use 25
+warning             30
+error               40
+fatal/critical      50
+
+we add a notice to it
+
+'''
+
+logging.NOTICE = 25
+
+logging.addLevelName(logging.NOTICE, 'NOTICE')
+
+# define a new logger function for notice
+# this is exactly like existing info, critical, debug...etc
+def Logger_notice(self, msg, *args, **kwargs):
+    """
+    Log 'msg % args' with severity 'NOTICE'.
+
+    To pass exception information, use the keyword argument exc_info
+with
+    a true value, e.g.
+
+    logger.notice("Houston, we have a %s", "major disaster", exc_info=1)
+    """
+    if self.manager.disable >= logging.NOTICE:
+        return
+    if logging.NOTICE >= self.getEffectiveLevel():
+        apply(self._log, (logging.NOTICE, msg, args), kwargs)
+
+# make the notice function known in the system Logger class
+logging.Logger.notice = Logger_notice
+
+# define a new root level notice function
+# this is exactly like existing info, critical, debug...etc
+def root_notice(msg, *args, **kwargs):
+    """
+    Log a message with severity 'NOTICE' on the root logger.
+    """
+    if len(logging.root.handlers) == 0:
+        basicConfig()
+    apply(logging.root.notice, (msg,)+args, kwargs)
+
+# make the notice root level function known
+logging.notice = root_notice
+
+# add NOTICE to the priority map of all the levels
+#logging.handlers.SysLogHandler.priority_map['NOTICE'] = 'notice'
 
 '''
 set_level 设为
@@ -278,7 +349,7 @@ def init_logging(logger, set_level = logging.INFO,
     if log_file_path:
         from logging.handlers import TimedRotatingFileHandler
 
-        fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5)
+        fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5, when='midnight')
         fh.setLevel(set_level)
         formatter = logging.Formatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
         fh.setFormatter(formatter)
@@ -304,7 +375,7 @@ def parse_args(func, log_filename='stat.log'):
             sys.exit()
     log_path = os.path.dirname(os.path.realpath(__file__)) + '/../log/' + log_filename
     if verbose == 0:
-        init_logging(logging.root, logging.INFO, False, log_path)
+        init_logging(logging.root, logging.NOTICE, True, log_path)
     elif verbose == 1:
         init_logging(logging.root, logging.INFO, True, log_path)
     elif verbose > 1:
@@ -326,12 +397,11 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
     #print args
     #print args.logfile
     #print args.verbose
-    logging.info(args)
     #loggers = [logging.root, logging.getLogger('pyhttpclient')]
     loggers = [logging.root]
     if args.verbose == 0:
         for logger in loggers:
-            init_logging(logger, logging.INFO, False, args.logfile)
+            init_logging(logger, logging.NOTICE, True, args.logfile)
     elif args.verbose == 1:
         for logger in loggers:
             init_logging(logger, logging.INFO, True, args.logfile)
@@ -339,10 +409,26 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
         for logger in loggers:
             init_logging(logger, logging.DEBUG, True, args.logfile)
 
+    logging.info("start running: " + ' '.join(sys.argv))
+    logging.info(args)
     return args
 
+
+
+import json
+from time import mktime
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return int(mktime(obj.timetuple()))
+
+        return json.JSONEncoder.default(self, obj)
+
+#print json.dumps(obj, cls = MyEncoder)
+
 def json_encode(j):
-    return json.dumps(j, indent=4)
+    return json.dumps(j, indent=4, cls=MyEncoder)
 
 def json_decode(j):
     return json.loads(j)
@@ -373,7 +459,7 @@ def json_decode(j):
 #console_logging = ConsoleLogging()
 
 
-import sys, time                                                                                                                                                                                                
+import sys, time
 from select import select
 
 import platform
@@ -417,7 +503,6 @@ def input_with_timeout(prompt, timeout, default=''):
     else:
         return input_with_timeout_sane(prompt, timeout, default)
 
-
 #base on :http://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-with-python-similar-to-tail
 def tail(fpath, lines_2find=20):
     the_file = open(fpath)
@@ -434,3 +519,31 @@ def tail(fpath, lines_2find=20):
     return line_list[-lines_2find:]
 
 
+def test_colors():
+    colors = [
+        ('Black'            , '0;30'),
+        ('Red'              , '0;31'),
+        ('Green'            , '0;32'),
+        ('Brown'            , '0;33'),
+        ('Blue'             , '0;34'),
+        ('Purple'           , '0;35'),
+        ('Cyan'             , '0;36'),
+        ('Light_Gray'       , '0;37'),
+        
+        ('Dark_Gray'        , '1;30'),
+        ('Light_Red'        , '1;31'),
+        ('Light_Green'      , '1;32'),
+        ('Yellow'           , '1;33'),
+        ('Light_Blue'       , '1;34'),
+        ('Light_Purple'     , '1;35'),
+        ('Light_Cyan'       , '1;36'),
+        ('White'            , '1;37'),
+    ]
+    COLOR_SEQ = "\033[%sm"
+    RESET_SEQ = "\033[0m"
+    for c in colors: 
+        print COLOR_SEQ % c[1] + c[0] + RESET_SEQ
+
+
+if __name__ == "__main__":
+    test_colors()
