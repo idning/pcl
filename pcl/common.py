@@ -214,6 +214,12 @@ def format_time(timestamp):
     t = datetime.fromtimestamp(float(timestamp))
     return t.strftime(ISOTIMEFORMAT)
 
+def format_time(timestamp=None, fmt='%Y-%m-%d %X'):
+    if not timestamp:
+        timestamp = time.time()
+    t = datetime.fromtimestamp(float(timestamp))
+    return t.strftime(fmt)
+
 class ColorFormatter(logging.Formatter):
     '''
     cool class
@@ -365,3 +371,66 @@ def json_decode(j):
         #print to_red('[ERROR] ' + msg)
 
 #console_logging = ConsoleLogging()
+
+
+import sys, time                                                                                                                                                                                                
+from select import select
+
+import platform
+if platform.system() == "Windows":
+    import msvcrt
+
+def input_with_timeout_sane(prompt, timeout, default):
+    """Read an input from the user or timeout"""
+    print prompt,
+    sys.stdout.flush()
+    rlist, _, _ = select([sys.stdin], [], [], timeout)
+    if rlist:
+        s = sys.stdin.readline().replace('\n','')
+    else:
+        s = default
+        print s
+    return s
+
+def input_with_timeout_windows(prompt, timeout, default):
+    start_time = time.time()
+    print prompt,
+    sys.stdout.flush()
+    input = ''
+    while True:
+        if msvcrt.kbhit():
+            chr = msvcrt.getche()
+            if ord(chr) == 13: # enter_key
+                break
+            elif ord(chr) >= 32: #space_char
+                input += chr
+        if len(input) == 0 and (time.time() - start_time) > timeout:
+            break
+    if len(input) > 0:
+        return input
+    else:
+        return default
+
+def input_with_timeout(prompt, timeout, default=''):
+    if platform.system() == "Windows":
+        return input_with_timeout_windows(prompt, timeout, default)
+    else:
+        return input_with_timeout_sane(prompt, timeout, default)
+
+
+#base on :http://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-with-python-similar-to-tail
+def tail(fpath, lines_2find=20):
+    the_file = open(fpath)
+    the_file.seek(0, 2)                         #go to end of file
+    bytes_in_file = the_file.tell()
+    lines_found, total_bytes_scanned = 0, 0
+    while lines_2find+1 > lines_found and bytes_in_file > total_bytes_scanned:
+        byte_block = min(1024, bytes_in_file-total_bytes_scanned)
+        the_file.seek(-(byte_block+total_bytes_scanned), 2)
+        total_bytes_scanned += byte_block
+        lines_found += the_file.read(1024).count('\n')
+    the_file.seek(-total_bytes_scanned, 2)
+    line_list = list(the_file.readlines())
+    return line_list[-lines_2find:]
+
+
