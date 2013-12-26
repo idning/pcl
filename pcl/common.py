@@ -138,6 +138,16 @@ def system(cmd, log_fun=logging.info):
     #r = p.stdout.read()
     #return r
 
+def system_bg(cmd, log_fun=logging.info):
+    '''
+    output is go to screen
+    user should wait on p
+    '''
+    if log_fun: log_fun('start worker in background: ' + cmd)
+    from subprocess import Popen, PIPE
+    p = Popen(cmd, shell=True, bufsize = 0, stdout=sys.stdout, stderr=sys.stderr)
+    return p
+
 def md5_for_file(f, block_size=2**20):
     f = open(f, 'rb')
     md5 = hashlib.md5()

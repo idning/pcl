@@ -70,6 +70,15 @@ def test_format_time():
 def test_tail():
     print 'tail of example.py:', tail('example.py', 1)
 
+def test_system_bg():
+    workers = [
+        system_bg('iostat 1 3'),
+        system_bg('vmstat 1 3'),
+    ]
+
+    for w in workers:
+        w.wait()
+
 def main():
     """docstring for main"""
     parse_args2()
@@ -80,6 +89,8 @@ def main():
     test_logging()
     test_format_time()
     test_tail()
+    test_system_bg()
+
 
 if __name__ == "__main__":
     main()
