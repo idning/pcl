@@ -9,10 +9,11 @@
 
 import time
 import logging
+import thread
 from datetime import datetime
 
 class Event(object):
-    def __init__(self, desc, func, args=(), kwargs={}):
+    def __init__(self, desc, func, args=(), kwargs={}, use_thread=False):
         """
         desc: min hour day month dow
             day: 1 - num days
@@ -23,6 +24,7 @@ class Event(object):
         self.func = func
         self.args = args
         self.kwargs = kwargs
+        self.use_thread = use_thread
 
     #support: 
     # * 
@@ -48,17 +50,20 @@ class Event(object):
 
     def check(self, t):
         if self.matchtime(t):
-            try: 
-                self.func(*self.args, **self.kwargs)
-            except Exception, e:
-                logging.exception(e)
+            if self.use_thread:
+                thread.start_new_thread(self.func, self.args, self.kwargs)
+            else:
+                try:
+                    self.func(*self.args, **self.kwargs)
+                except Exception, e:
+                    logging.exception(e)
 
 class Cron(object):
     def __init__(self):
         self.events = []
 
-    def add(self, desc, func):
-        self.events.append(Event(desc, func))
+    def add(self, desc, func, args=(), kwargs={}, use_thread=False):
+        self.events.append(Event(desc, func, args, kwargs, use_thread))
 
     def run(self):
         while True:
@@ -84,6 +89,7 @@ def main():
 
     cron = Cron()
     cron.add('* * * * *'   , minute_task) # every minute
+    cron.add('* * * * *'   , minute_task, use_thread=True) # every minute
     cron.add('33 * * * *'  , day_task)    # erery hour
     cron.add('34 18 * * *' , day_task)    # every day
     cron.run()
