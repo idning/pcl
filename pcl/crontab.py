@@ -83,9 +83,9 @@ def main():
         print 'day_task @ %s' % time.time()
 
     cron = Cron()
-    cron.add('* * * * *', minute_task) # every minute 
-    cron.add('33 * * * *', day_task)    # erery hour
-    cron.add('34 18 * * *', day_task)  # every day
+    cron.add('* * * * *'   , minute_task) # every minute
+    cron.add('33 * * * *'  , day_task)    # erery hour
+    cron.add('34 18 * * *' , day_task)    # every day
     cron.run()
 
 if __name__ == "__main__":
