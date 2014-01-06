@@ -72,7 +72,7 @@ class Cron(object):
             next_minute = t - t%60 + 60
             while t < next_minute:
                 sleeptime = 60 - t%60
-                logging.info('current time: %s, we will sleep %.2f seconds' %(t, sleeptime))
+                logging.debug('current time: %s, we will sleep %.2f seconds' %(t, sleeptime))
                 time.sleep(sleeptime)
                 t = time.time()
 
