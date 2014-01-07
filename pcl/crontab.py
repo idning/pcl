@@ -66,6 +66,7 @@ class Cron(object):
         self.events.append(Event(desc, func, args, kwargs, use_thread))
 
     def run(self):
+        last_run = 0
         while True:
             #wait to a new minute start
             t = time.time()
@@ -76,10 +77,23 @@ class Cron(object):
                 time.sleep(sleeptime)
                 t = time.time()
 
+            if last_run and next_minute - last_run != 60:
+                logging.warn('Cron Ignored: last_run: %s, this_time:%s' % (last_run, next_minute) )
+            last_run = next_minute
+
             current = datetime(*datetime.now().timetuple()[:5])
             for e in self.events:
                 e.check(current)
-            time.sleep(1)
+            time.sleep(0.001)
+
+def main2():
+    def long_task():
+        time.sleep(61)
+        print 'long task @ %s' % time.time()
+    #we will got warnning
+    cron = Cron()
+    cron.add('* * * * *'   , long_task) # every minute
+    cron.run()
 
 def main():
     def minute_task():
@@ -95,6 +109,8 @@ def main():
     cron.run()
 
 if __name__ == "__main__":
+    import common
+    common.parse_args2()
     main()
 
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
