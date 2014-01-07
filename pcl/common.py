@@ -130,13 +130,13 @@ def system(cmd, log_fun=logging.info):
     r = commands.getoutput(cmd)
     return r
 	
-#def system(cmd, log_fun=logging.info):
-    #if log_fun: log_fun(cmd)
-    #from subprocess import Popen, PIPE
-    #p = Popen(cmd, shell=True, bufsize = 102400, stdout=PIPE)
-    #p.wait()
-    #r = p.stdout.read()
-    #return r
+def system2(cmd, log_fun=logging.info):
+    if log_fun: log_fun(cmd)
+    from subprocess import Popen, PIPE
+    p = Popen(cmd, shell=True, bufsize = 102400, stdout=PIPE)
+    p.wait()
+    r = p.stdout.read()
+    return r
 
 def system_bg(cmd, log_fun=logging.info):
     '''
@@ -399,15 +399,18 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
     if not parser:
         parser= argparse.ArgumentParser()
 
+
+
     parser.add_argument('-v', '--verbose', action='count', help="verbose", default=0) 
     parser.add_argument('-o', '--logfile', default=default_log_filename) 
 
-    #(args, remaining) = parser.parse_known_args()
+    try:
+        import argcomplete
+        argcomplete.autocomplete(parser)
+    except:
+        pass
+
     args = parser.parse_args()
-    #print args
-    #print args.logfile
-    #print args.verbose
-    #loggers = [logging.root, logging.getLogger('pyhttpclient')]
     loggers = [logging.root]
     if args.verbose == 0:
         for logger in loggers:
@@ -422,7 +425,6 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
     logging.info("start running: " + ' '.join(sys.argv))
     logging.info(args)
     return args
-
 
 
 import json
