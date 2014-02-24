@@ -464,7 +464,7 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
         for logger in loggers:
             init_logging(logger, logging.DEBUG, True, args.logfile)
 
-    logging.info("start running: " + ' '.join(sys.argv))
+    logging.notice("start running: " + ' '.join(sys.argv))
     logging.info(args)
     return args
 
