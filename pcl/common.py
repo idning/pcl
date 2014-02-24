@@ -8,7 +8,7 @@ import os
 import re
 import sys
 import time
-import logging 
+import logging
 import hmac
 import base64
 import hashlib
@@ -17,6 +17,7 @@ import mimetypes
 import json
 import getopt
 
+from logging.handlers import TimedRotatingFileHandler
 
 from cStringIO import StringIO
 #from abc import abstractmethod
@@ -45,7 +46,7 @@ class Ddict(dict):
     def __getitem__(self, key):
         if not self.has_key(key):
             self[key] = self.default()
-        return dict.__getitem__(self, key)   
+        return dict.__getitem__(self, key)
 
 
 def retry(ExceptionToCheck, tries=4, delay=2, backoff=2, logger=None):
@@ -91,6 +92,32 @@ def retry(ExceptionToCheck, tries=4, delay=2, backoff=2, logger=None):
         return f_retry  # true decorator
     return deco_retry
 
+
+#use logfun
+def retryv2(ExceptionToCheck, tries=3, delay=2, backoff=2, logfun=None):
+    def deco_retry(f):
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            try_one_last_time = True
+            while mtries > 1:
+                try:
+                    return f(*args, **kwargs)
+                    try_one_last_time = False
+                    break
+                except ExceptionToCheck, e:
+                    msg = "%s, Retrying in %d seconds..." % (str(e), mdelay)
+                    if logfun:
+                        logfun(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    mdelay *= backoff
+            if try_one_last_time:
+                return f(*args, **kwargs)
+            return
+        return f_retry  # true decorator
+    return deco_retry
+
+
 ###########################################################
 # color system
 ###########################################################
@@ -115,7 +142,6 @@ def to_yellow(s):    return  bcolors.YELLOW+ str(s) + bcolors.ENDC
 def to_green(s):     return  bcolors.GREEN + str(s) + bcolors.ENDC
 def to_blue(s):      return  bcolors.BLUE+ str(s) + bcolors.ENDC
 
-
 ###########################################################
 # misc
 ###########################################################
@@ -129,7 +155,7 @@ def system(cmd, log_fun=logging.info):
     if log_fun: log_fun(cmd)
     r = commands.getoutput(cmd)
     return r
-	
+
 def system2(cmd, log_fun=logging.info):
     if log_fun: log_fun(cmd)
     from subprocess import Popen, PIPE
@@ -248,7 +274,7 @@ class ColorFormatter(logging.Formatter):
     Purple           = '0;35'
     Cyan             = '0;36'
     Light_Gray       = '0;37'
-                     
+
     Dark_Gray        = '1;30'
     Light_Red        = '1;31'
     Light_Green      = '1;32'
@@ -339,9 +365,9 @@ logging.notice = root_notice
 #logging.handlers.SysLogHandler.priority_map['NOTICE'] = 'notice'
 
 '''
-set_level 设为
+设为set_level
 '''
-def init_logging(logger, set_level = logging.INFO, 
+def init_logging(logger, set_level = logging.INFO,
         console = True,
         log_file_path = None):
 
@@ -357,13 +383,31 @@ def init_logging(logger, set_level = logging.INFO,
         logger.addHandler(fh)
 
     if log_file_path:
-        from logging.handlers import TimedRotatingFileHandler
 
-        fh = TimedRotatingFileHandler(log_file_path, backupCount=24*5, when='midnight')
+        # by day
+        fh = TimedRotatingFileHandler(log_file_path, backupCount=30, when='D')
+        fh.suffix = "%Y%m%d"
+        fh.extMatch = re.compile(r"^\d{4}\d{2}\d{2}$")
+        # by hour
+        #fh = TimedRotatingFileHandler(log_file_path, backupCount=24*7, when='H')
+        #fh.suffix = "%Y%m%d%H"
+        #fh.extMatch = re.compile(r"^\d{4}\d{2}\d{2}\d{2}$")
+
         fh.setLevel(set_level)
         formatter = logging.Formatter("%(asctime)-15s [%(threadName)s] [%(levelname)s] %(message)s")
         fh.setFormatter(formatter)
         logger.addHandler(fh)
+
+'''
+有的时候, 希望文件中总是打印debug级别的日志.
+在用init_logging 之后, 可以掉用这个函数修改级别.
+'''
+def update_logging_level(logger, console_level=0, logfile_level=0):
+    for h in logger.handlers:
+        if isinstance(h, logging.StreamHandler) and console_level:
+            h.setLevel(console_level)
+        if isinstance(h, TimedRotatingFileHandler) and logfile_level:
+            h.setLevel(logfile_level)
 
 def parse_args(func, log_filename='stat.log'):
     try:
@@ -399,10 +443,8 @@ def parse_args2(default_log_filename='xxx.log', parser = None):
     if not parser:
         parser= argparse.ArgumentParser()
 
-
-
-    parser.add_argument('-v', '--verbose', action='count', help="verbose", default=0) 
-    parser.add_argument('-o', '--logfile', default=default_log_filename) 
+    parser.add_argument('-v', '--verbose', action='count', help="verbose", default=0)
+    parser.add_argument('-o', '--logfile', default=default_log_filename)
 
     try:
         import argcomplete
@@ -448,7 +490,7 @@ def json_decode(j):
 
 #class ConsoleLogging():
     #'''
-    #对于console类型的应用, 如mongodeploy, bcsh 之类, 在段时间内在console运行，记录日志通常是没有必要的. 
+    #对于console类型的应用, 如mongodeploy, bcsh 之类, 在段时间内在console运行，记录日志通常是没有必要的.
     #此时有颜色的console logging会更加合适.
 
     #'''
@@ -541,7 +583,7 @@ def test_colors():
         ('Purple'           , '0;35'),
         ('Cyan'             , '0;36'),
         ('Light_Gray'       , '0;37'),
-        
+
         ('Dark_Gray'        , '1;30'),
         ('Light_Red'        , '1;31'),
         ('Light_Green'      , '1;32'),
@@ -553,7 +595,7 @@ def test_colors():
     ]
     COLOR_SEQ = "\033[%sm"
     RESET_SEQ = "\033[0m"
-    for c in colors: 
+    for c in colors:
         print COLOR_SEQ % c[1] + c[0] + RESET_SEQ
 
 
