@@ -16,6 +16,7 @@ import commands
 import mimetypes
 import json
 import getopt
+from string import Template
 
 from logging.handlers import TimedRotatingFileHandler
 
@@ -93,7 +94,7 @@ def retry(ExceptionToCheck, tries=4, delay=2, backoff=2, logger=None):
     return deco_retry
 
 
-#use logfun
+#use logfun, but not logger
 def retryv2(ExceptionToCheck, tries=3, delay=2, backoff=2, logfun=None):
     def deco_retry(f):
         def f_retry(*args, **kwargs):
@@ -438,7 +439,7 @@ def parse_args(func, log_filename='stat.log'):
     func(args)
 
 # add @ 20130625
-def parse_args2(default_log_filename='xxx.log', parser = None):
+def parse_args2(default_log_filename=None, parser = None):
     import argparse
     if not parser:
         parser= argparse.ArgumentParser()
@@ -598,6 +599,11 @@ def test_colors():
     for c in colors:
         print COLOR_SEQ % c[1] + c[0] + RESET_SEQ
 
+def strstr(s1, s2):
+    return s1.find(s2) != -1
+
+def TT(template, args): #todo: modify all
+    return Template(template).substitute(args)
 
 if __name__ == "__main__":
     test_colors()
