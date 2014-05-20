@@ -1,3 +1,7 @@
+install::
+
+    pip install -e git://github.com/idning/pcl.git#egg=pcl
+
 some useful python common libs
 
 test of httpc.py::
