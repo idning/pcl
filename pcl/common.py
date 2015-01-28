@@ -17,7 +17,7 @@ import mimetypes
 import json
 try:
     import ujson
-    json.loads = ujson.loads()
+    json.loads = ujson.loads
 except:
     pass
 
