@@ -15,6 +15,12 @@ import hashlib
 import commands
 import mimetypes
 import json
+try:
+    import ujson
+    json.loads = ujson.loads()
+except:
+    pass
+
 import getopt
 from string import Template
 
@@ -470,7 +476,6 @@ def parse_args2(default_log_filename=None, parser = None):
     return args
 
 
-import json
 from time import mktime
 
 class MyEncoder(json.JSONEncoder):
